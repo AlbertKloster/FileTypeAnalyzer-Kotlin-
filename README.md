@@ -1,31 +1,32 @@
-# Stage 1/5: Is this a PDF?
+# Stage 2/5: KMP algorithm
 ## Description
-In this project, you will learn how to make a tool for determining file type. It's not like determining file type based on the extension of the file; the filename can be random. Actually, many file types contain special byte sequences that make it easy to determine them. You’ll start from a simple program that can only search for an occurrence of the specific pattern inside a single file and gradually turn it into a more practical solution that can check hundreds and thousands of files against a huge pattern set. Each pattern has information about a file type which will be reported to the user when there is a successful match.
+Improve your file type checker’s pattern match logic by rewriting the pattern search algorithm. Use some of the advanced algorithms you have learned so far like the Knuth-Morris-Pratt algorithm. Check your program’s search performance with some huge file. Compare your improved search engine with a naive implementation. You can use `nanoTime()` from the `java.lang.System` class, for measuring execution time. Check the <a href="https://docs.oracle.com/javase/10/docs/api/java/lang/System.html#nanoTime()">official documentation</a> and the Kotlin tutorial <a href="https://www.baeldung.com/kotlin/measure-elapsed-time#classic-java">Measuring Elapsed Time in Kotlin, #6</a>.
 
-This approach is widely used in many different applications. For example, the <a href="https://en.wikipedia.org/wiki/File_(command)">Unix “file” tool</a> relies on a sophisticated “magic” database (it consists of a pattern set written in a specific language), antivirus and malware-detection tools search the malicious signatures inside user’s files, and firewalls do the same with a system’s network traffic (as well as DPI systems).
-
-Let’s begin with an elementary prototype of our file type checker. Write a program that accepts a pattern and its file type and matches the pattern against some file.
-
-Here we deﬁne pattern as a pair of two strings: {P, R}, where P is a pattern itself and R is a resulting ﬁle type which corresponds to pattern P. If the string P is found in the ﬁle then your program should return R as file type. For example, for the following pattern
-```kotlin
-{"%PDF-", "PDF document"}
-```
-the program will search for a `%PDF-` in a file’s binary data and if found successfully will determine file type as `PDF document`. Note that the pattern can be anywhere in the file, not just at the start of the file. You can see here in the row with "Magic number" there is the `%PDF` pattern, but actually after this pattern, the `-` symbol always appears, so the pattern described above is stricter.
-
-You can use <a href="https://docs.w3cub.com/kotlin/docs/tutorials/kotlin-for-py/file-io">this link</a> to see how to open a file in binary (or <a href="https://www.codejava.net/java-se/file-io/how-to-read-and-write-binary-files-in-java">this detailed link</a> for Java, but it is similar with Kotlin).
-
-Write a program that accepts a ﬁle name and pattern and searches for an occurrence of the pattern in this ﬁle. If the pattern matched at least once the program should report its type. If there were no matches, print `Unknown file type`.
-
-Your program should accept three arguments: the file to check (relative path to the project folder), the pattern string (P), and the result string (R).
+Your program should accept another argument, that represents an algorithm, a naive implementation that you've implemented in the previous step marked as `--naive` and KMP algorithm marked as `--KMP`. Other arguments (file name, pattern and file type) should be parsed after this one.
 
 ## Examples
-The examples below show how your output might look.
+First, we've checked the naive implementation, and it took roughly 5 seconds. Then KMP showed 5 times better performance. You should expect similar behavior from your program.
 
-<b>Example 1:</b> <i>Program execution with arguments `doc.pdf "%PDF-" "PDF document"`</i>
+<b>Example 1:</b> <i>Program execution with arguments `--naive huge_doc.pdf "%PDF-" "PDF document"`</i>
 ```
 PDF document
+It took 5.011 seconds
 ```
-<b>Example 2:</b> <i>Program execution with arguments `picture.jpg "%PDF-" "PDF document"`</i>
+
+<b>Example 2:</b> <i>Program execution with arguments `--KMP huge_doc.pdf "%PDF-" "PDF document"`</i>
+```
+PDF document
+It took 1.037 seconds
+```
+
+<b>Example 3:</b> <i>Program execution with arguments `--naive pic.png "%PDF-" "PDF document"`</i>
 ```
 Unknown file type
+It took 3.641 seconds
+```
+
+<b>Example 4:</b> <i>Program execution with arguments `--KMP pic.png "%PDF-" "PDF document"`</i>
+```
+Unknown file type
+It took 0.469 seconds
 ```
