@@ -3,32 +3,23 @@ package analyzer
 import java.io.File
 
 fun main(args: Array<String>) {
-    val (algorithm, file, pattern, result) = args
-    val byteArray = File(file).readBytes()
-    val startTime = System.currentTimeMillis()
-
-    val contains = when (algorithm) {
-        "--naive" -> byteArray.containsNaive(pattern.toByteArray())
-        "--KMP" -> byteArray.containsKMP(pattern.toByteArray())
-        else -> false
+    val (files, pattern, result) = args
+    val workers = mutableListOf<Worker>()
+    File(files).listFiles()?.forEach { file ->
+        workers.add(Worker(file, pattern, result))
     }
-    val time = (System.currentTimeMillis() - startTime) / 1000.0
-
-    println(if (contains) result else "Unknown file type")
-    println("It took $time seconds")
+    workers.forEach { it.start() }
+    workers.forEach { it.join() }
 }
 
-private fun ByteArray.containsNaive(target: ByteArray): Boolean {
-    if (target.isEmpty())  return true
-
-    return this.fold(0) { startIndex, _ ->
-        if (startIndex + target.size > this.size) return false
-
-        val subArray = this.copyOfRange(startIndex, startIndex + target.size)
-        if (subArray.contentEquals(target))  return true
-
-        startIndex + 1
-    } != this.size
+class Worker(private val file: File, private val pattern: String, private val result: String) : Thread() {
+    override fun run() {
+        println(
+            "${file.name}: ${
+                if (file.readBytes().contains(pattern.toByteArray())) result else "Unknown file type"
+            }"
+        )
+    }
 }
 
 private fun ByteArray.buildPrefixFunction(): IntArray {
@@ -46,7 +37,7 @@ private fun ByteArray.buildPrefixFunction(): IntArray {
     return table
 }
 
-private fun ByteArray.containsKMP(target: ByteArray): Boolean {
+private fun ByteArray.contains(target: ByteArray): Boolean {
     if (target.isEmpty()) return true
 
     val kmpTable = target.buildPrefixFunction()

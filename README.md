@@ -1,32 +1,24 @@
-# Stage 2/5: KMP algorithm
+# Stage 3/5: Wanted!
 ## Description
-Improve your file type checker’s pattern match logic by rewriting the pattern search algorithm. Use some of the advanced algorithms you have learned so far like the Knuth-Morris-Pratt algorithm. Check your program’s search performance with some huge file. Compare your improved search engine with a naive implementation. You can use `nanoTime()` from the `java.lang.System` class, for measuring execution time. Check the <a href="https://docs.oracle.com/javase/10/docs/api/java/lang/System.html#nanoTime()">official documentation</a> and the Kotlin tutorial <a href="https://www.baeldung.com/kotlin/measure-elapsed-time#classic-java">Measuring Elapsed Time in Kotlin, #6</a>.
+Let’s make another improvement. The pattern search engine is pretty fast now. However, if we want to check multiple files, we should pass them to the checker one by one and match them consecutively. Parallelize your checker to handle multiple files.
 
-Your program should accept another argument, that represents an algorithm, a naive implementation that you've implemented in the previous step marked as `--naive` and KMP algorithm marked as `--KMP`. Other arguments (file name, pattern and file type) should be parsed after this one.
+Now your search engine must deal with multiple files. Hint: your program can be organized as several workers. Each worker is equivalent (logically) to the single-threaded pattern matcher: it takes several files and matches them consecutively using the searching algorithm. The answers of each worker will be aggregated as the total execution result.
+
+Your program should accept two strings: P and R as the first two arguments. P and R represent the pattern to check. Then it should take a folder’s path which contains all of the files to be checked by your program.
+
+For this stage, you should use only the KMP algorithm.
 
 ## Examples
-First, we've checked the naive implementation, and it took roughly 5 seconds. Then KMP showed 5 times better performance. You should expect similar behavior from your program.
-
-<b>Example 1:</b> <i>Program execution with arguments `--naive huge_doc.pdf "%PDF-" "PDF document"`</i>
+<b>Example 1:</b> <i>Program execution with arguments `test_files "-----BEGIN\ CERTIFICATE-----" "PEM certificate"`</i>
 ```
-PDF document
-It took 5.011 seconds
-```
-
-<b>Example 2:</b> <i>Program execution with arguments `--KMP huge_doc.pdf "%PDF-" "PDF document"`</i>
-```
-PDF document
-It took 1.037 seconds
+file.pem: PEM certificate
+doc_1.docx: Unknown file type
+doc_2.pdf: Unknown file type
 ```
 
-<b>Example 3:</b> <i>Program execution with arguments `--naive pic.png "%PDF-" "PDF document"`</i>
+<b>Example 2:</b> <i>Program execution with arguments `test_files "%PDF-" "PDF document"`</i>
 ```
-Unknown file type
-It took 3.641 seconds
-```
-
-<b>Example 4:</b> <i>Program execution with arguments `--KMP pic.png "%PDF-" "PDF document"`</i>
-```
-Unknown file type
-It took 0.469 seconds
+file.pem: Unknown file type
+doc_1.docx: Unknown file type
+doc_2.pdf: PDF document
 ```
