@@ -2,23 +2,38 @@ package analyzer
 
 import java.io.File
 
+data class Pattern(val priority: Int, val pattern: String, val result: String)
+
+const val UNKNOWN_FILE_TYPE = "Unknown file type"
+
 fun main(args: Array<String>) {
-    val (files, pattern, result) = args
+    val (pathFiles, pathPatterns) = args
+    val patterns = getPatterns(pathPatterns)
     val workers = mutableListOf<Worker>()
-    File(files).listFiles()?.forEach { file ->
-        workers.add(Worker(file, pattern, result))
+    File(pathFiles).listFiles()?.forEach { file ->
+        workers.add(Worker(file, patterns))
     }
     workers.forEach { it.start() }
     workers.forEach { it.join() }
+
 }
 
-class Worker(private val file: File, private val pattern: String, private val result: String) : Thread() {
+private fun getPatterns(pathPatterns: String): List<Pattern> {
+    return File(pathPatterns).readLines()
+        .map { it.split(";") }
+        .map { Pattern(it[0].toInt(), it[1].removeSurrounding("\""), it[2].removeSurrounding("\"")) }
+        .sortedByDescending { it.priority }
+}
+
+class Worker(private val file: File, private val patterns: List<Pattern>) : Thread() {
     override fun run() {
-        println(
-            "${file.name}: ${
-                if (file.readBytes().contains(pattern.toByteArray())) result else "Unknown file type"
-            }"
-        )
+        for (pattern in patterns) {
+            if (file.readBytes().contains(pattern.pattern.toByteArray())) {
+                println("${file.name}: ${pattern.result}")
+                return
+            }
+        }
+        println("${file.name}: $UNKNOWN_FILE_TYPE")
     }
 }
 

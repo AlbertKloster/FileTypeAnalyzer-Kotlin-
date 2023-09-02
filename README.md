@@ -1,24 +1,25 @@
-# Stage 3/5: Wanted!
+# Stage 4/5: A question of priorities
 ## Description
-Let’s make another improvement. The pattern search engine is pretty fast now. However, if we want to check multiple files, we should pass them to the checker one by one and match them consecutively. Parallelize your checker to handle multiple files.
+It is almost useless to have a pattern base with only one pattern. There should be more. We can take patterns one by one from some storage and match them until we find a successful match. But what should we do if several patterns match successfully?
 
-Now your search engine must deal with multiple files. Hint: your program can be organized as several workers. Each worker is equivalent (logically) to the single-threaded pattern matcher: it takes several files and matches them consecutively using the searching algorithm. The answers of each worker will be aggregated as the total execution result.
+Extend your program to make it match several patterns against each file. Implement some prioritizing scheme for patterns to prevent ambiguity in case of multiple matches.
 
-Your program should accept two strings: P and R as the first two arguments. P and R represent the pattern to check. Then it should take a folder’s path which contains all of the files to be checked by your program.
-
-For this stage, you should use only the KMP algorithm.
-
-## Examples
-<b>Example 1:</b> <i>Program execution with arguments `test_files "-----BEGIN\ CERTIFICATE-----" "PEM certificate"`</i>
+The `patterns.db` consist of patterns with their priorities. You can download it <a href="https://stepik.org/media/attachments/lesson/210127/patterns.db">here</a>. For example:
 ```
-file.pem: PEM certificate
-doc_1.docx: Unknown file type
-doc_2.pdf: Unknown file type
+4;"PK";"Zip archive"
+7;"word/_rels";"MS Office Word 2007+"
+7;"ppt/_rels";"MS Office PowerPoint 2007+"
+7;"xl/_rels";"MS Office Excel 2007+"
 ```
 
-<b>Example 2:</b> <i>Program execution with arguments `test_files "%PDF-" "PDF document"`</i>
+A higher value means higher priority. In this example, the `"Zip archive"` is a container for multiple files. However, Microsoft Office files are also stored as Zip archives, you can clearly see this if you rename file `"file.docx"` to `"file.zip"`. If you unzip it, you'll see that it contains a bunch of folders and a bunch of XMLs. So, a Word file contains both `"PK"` indicating that this is a Zip archive and `"word/_rels"` indicating that this is a Word document. In this situation, you should choose a pattern with higher priority, which is `"MS Office Word 2007+"`.
+
+While developing your program you can use the attached file. It contains some patterns with different priorities sorted by their "accuracy" (for example, MS Office 2007 documents store their data inside a zip archive, so the pattern for Office documents should be "stronger" than that for zip archive).
+
+## Example
+<b>Example:</b> <i>Program execution with arguments `test_files patterns.db`</i>
 ```
-file.pem: Unknown file type
-doc_1.docx: Unknown file type
-doc_2.pdf: PDF document
+test_filesdoc_0.doc: MS Office Word 2003
+doc_1.ppt: MS Office PowerPoint 2003
+file.zip: Zip archive
 ```
