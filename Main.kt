@@ -1,6 +1,8 @@
 package analyzer
 
 import java.io.File
+import java.math.BigInteger
+
 
 data class Pattern(val priority: Int, val pattern: String, val result: String)
 
@@ -28,7 +30,7 @@ private fun getPatterns(pathPatterns: String): List<Pattern> {
 class Worker(private val file: File, private val patterns: List<Pattern>) : Thread() {
     override fun run() {
         for (pattern in patterns) {
-            if (file.readBytes().contains(pattern.pattern.toByteArray())) {
+            if (rabinKarpContainsPattern(file.readBytes(), pattern.pattern.toByteArray())) {
                 println("${file.name}: ${pattern.result}")
                 return
             }
@@ -37,42 +39,49 @@ class Worker(private val file: File, private val patterns: List<Pattern>) : Thre
     }
 }
 
-private fun ByteArray.buildPrefixFunction(): IntArray {
-    val table = IntArray(size)
-    var j = 0
-    for (i in 1 until size) {
-        while (j > 0 && this[i] != this[j]) {
-            j = table[j - 1]
-        }
-        if (this[i] == this[j]) {
-            j++
-        }
-        table[i] = j
+fun rabinKarpContainsPattern(source: ByteArray, pattern: ByteArray): Boolean {
+    val sourceLength = source.size
+    val patternLength = pattern.size
+
+    if (sourceLength < patternLength) {
+        return false
     }
-    return table
-}
 
-private fun ByteArray.contains(target: ByteArray): Boolean {
-    if (target.isEmpty()) return true
+    val prime = BigInteger("101") // Prime number for hashing
+    val patternHash = calculateHash(pattern, 0, patternLength, prime)
+    var sourceHash = calculateHash(source, 0, patternLength, prime)
 
-    val kmpTable = target.buildPrefixFunction()
-    var i = 0
-    var j = 0
-
-    while (i < size) {
-        if (target[j] == this[i]) {
-            i++
-            j++
-            if (j == target.size) {
+    for (i in 0 until sourceLength - patternLength + 1) {
+        if (sourceHash == patternHash) {
+            // If the hash matches, perform a character-by-character comparison
+            var match = true
+            for (j in 0 until patternLength) {
+                if (source[i + j] != pattern[j]) {
+                    match = false
+                    break
+                }
+            }
+            if (match) {
                 return true
             }
-        } else {
-            if (j != 0) {
-                j = kmpTable[j - 1]
-            } else {
-                i++
-            }
+        }
+
+        // Update the sourceHash for the next window
+        if (i < sourceLength - patternLength) {
+            sourceHash = sourceHash.subtract(BigInteger.valueOf(source[i].toLong())
+                .multiply(prime.pow(patternLength - 1)))
+                .multiply(prime)
+                .add(BigInteger.valueOf(source[i + patternLength].toLong()))
         }
     }
+
     return false
+}
+
+private fun calculateHash(input: ByteArray, start: Int, end: Int, prime: BigInteger): BigInteger {
+    var hash = BigInteger.ZERO
+    for (i in start until end) {
+        hash = hash.multiply(prime).add(BigInteger.valueOf(input[i].toLong()))
+    }
+    return hash
 }
